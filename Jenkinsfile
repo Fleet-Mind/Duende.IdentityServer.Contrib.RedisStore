@@ -12,7 +12,9 @@ node('windows-slave-fleetmind') {
     pipelineProps.defaultBuildMultibranchProperties()
 
     //-----------GLOBAL VARIABLES------------------------------
-    def version = "3.3.0. + ${env.BUILD_NUMBER}"
+    def version = "1.0.0. + ${env.BUILD_NUMBER}"
+	def configType = "Release"
+	def csProjFile = 'Duende.IdentityServer.Contrib.RedisStore\\Duende.IdentityServer.Contrib.RedisStore.csproj'
     def firstChar = env.BRANCH_NAME.replace("origin/", "").charAt(0)
     def pushPkgs = firstChar == '1' || firstChar == '2' || firstChar == '3' || firstChar == '4' || firstChar == '5' || firstChar == '6' || firstChar == '7' || firstChar == '8' || firstChar == '9'
 
@@ -54,24 +56,16 @@ node('windows-slave-fleetmind') {
       }
 	  
 	  stage("Build") {
-	    def configType = "Release"
-		
         bat "dotnet build -t:Clean"
 		bat "dotnet build --configuration ${configType}"
       }
 	  
-	  stage('Push Database Package') {
-        if (pushPkgs) {
-          withCredentials([
-            file(credentialsId: 'NuGetNexusSettings', variable: 'NuGet_Config'),
-            usernamePassword(credentialsId: 'ops-jenkins-github-packages', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')
-          ]) {
-            bat "dotnet nuget push Duende.IdentityServer.Contrib.RedisStore.${version}.nupkg --api-key %GITHUB_TOKEN% --source https://nuget.pkg.github.com/Fleet-Mind/index.json"
-          }
-        }
+	  stage('Pack Package') {
+        bat "dotnet pack --configuration ${configType} ${csProjFile}"
+		bat "copy Duende.IdentityServer.Contrib.RedisStore\\bin\\Release\\*.nupkg ."
       }
-
-      stage('Push DatabaseTests Package') {
+	  
+	  stage('Push Package') {
         if (pushPkgs) {
           withCredentials([
             file(credentialsId: 'NuGetNexusSettings', variable: 'NuGet_Config'),
