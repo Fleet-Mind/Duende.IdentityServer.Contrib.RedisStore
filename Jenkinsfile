@@ -17,6 +17,7 @@ node('windows-slave-fleetmind') {
 	def csProjFile = 'Duende.IdentityServer.Contrib.RedisStore\\Duende.IdentityServer.Contrib.RedisStore.csproj'
     def firstChar = env.BRANCH_NAME.replace("origin/", "").charAt(0)
     def pushPkgs = firstChar == '1' || firstChar == '2' || firstChar == '3' || firstChar == '4' || firstChar == '5' || firstChar == '6' || firstChar == '7' || firstChar == '8' || firstChar == '9'
+	def buildNumber = "${env.BUILD_NUMBER}"
 
     //-----------STAGES------------------------------
     withEnv(["${env.MS_SONARQUBE_PATH}"]) { // Provides executable such as nuget and mstest
@@ -38,9 +39,17 @@ node('windows-slave-fleetmind') {
           ])
         }
       }
+	  
+		lock('global-build-counter') {
+			stage('Generate Global Build Number') {
+				buildNumber = fleetmindUtils.getGlobalBuildNumber()
+			
+				echo "Global Build Number: ${buildNumber}"
+			}
+		}
 
       stage('Set Build Number') {
-		powershell ".\\set_release_version.ps1 ${env.BUILD_NUMBER}"
+		powershell ".\\set_release_version.ps1 ${buildNumber}"
 
 		version = readFile('version.txt').trim()
 
@@ -55,26 +64,25 @@ node('windows-slave-fleetmind') {
         }
       }
 	  
-	  stage("Build") {
-        bat "dotnet build -t:Clean"
-		bat "dotnet build --configuration ${configType}"
-      }
+		stage("Build") {
+			bat "dotnet build -t:Clean"
+			bat "dotnet build --configuration ${configType}"
+		}
 	  
-	  stage('Pack Package') {
-        bat "dotnet pack --configuration ${configType} ${csProjFile}"
-		bat "copy Duende.IdentityServer.Contrib.RedisStore\\bin\\Release\\*.nupkg ."
-      }
+		stage('Pack Package') {
+			if (pushPkgs) {
+				bat "dotnet pack --configuration ${configType} ${csProjFile}"
+				bat "copy Duende.IdentityServer.Contrib.RedisStore\\bin\\Release\\*.nupkg ."
+			}
+		}
 	  
-	  stage('Push Package') {
-        if (pushPkgs) {
-          withCredentials([
-            file(credentialsId: 'NuGetNexusSettings', variable: 'NuGet_Config'),
-            usernamePassword(credentialsId: 'ops-jenkins-github-packages', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')
-          ]) {
-            bat "dotnet nuget push Duende.IdentityServer.Contrib.RedisStore.${version}.nupkg --api-key %GITHUB_TOKEN% --source https://nuget.pkg.github.com/Fleet-Mind/index.json"
-          }
-        }
-      }
+		stage('Push Package') {
+			if (pushPkgs) {
+				withCredentials([string(credentialsId: 'FmNpmSettings', variable: 'gitHubToken')]) {
+					bat "dotnet nuget push Duende.IdentityServer.Contrib.RedisStore.${version}.nupkg --api-key %gitHubToken% --source https://nuget.pkg.github.com/Fleet-Mind/index.json"
+				}
+			}
+		}
     }
   } catch (e) {
     echo (e)
