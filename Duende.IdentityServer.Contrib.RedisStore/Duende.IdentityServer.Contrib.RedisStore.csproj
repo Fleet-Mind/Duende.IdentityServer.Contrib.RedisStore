@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <Version>2.0.2</Version>
-	<AssemblyVersion>2.0.2.0</AssemblyVersion>
+    <TargetFramework>net11.0</TargetFramework>
+    <Version>2.1.0</Version>
+	<AssemblyVersion>2.1.0.0</AssemblyVersion>
     <Authors>Univerus</Authors>
     <Description>Library Redis Store for operational data and for Caching of Duende Identity Server</Description>
     <PackageTags>C#; SSO; Single Sign On; Duende Identity Server Redis Store; Library</PackageTags>
