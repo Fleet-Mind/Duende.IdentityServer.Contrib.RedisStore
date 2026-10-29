@@ -1,4 +1,4 @@
-﻿using IdentityModel;
+using Duende.IdentityModel;
 using Duende.IdentityServer.Validation;
 using System;
 using System.Collections.Generic;

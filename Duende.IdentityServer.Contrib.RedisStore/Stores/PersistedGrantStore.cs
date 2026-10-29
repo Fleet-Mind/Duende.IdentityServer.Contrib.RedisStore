@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Duende.IdentityServer.Contrib.RedisStore.Stores
@@ -107,8 +108,9 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Stores
     ///
     /// </summary>
     /// <param name="grant"></param>
+    /// <param name="ct"></param>
     /// <returns></returns>
-    public virtual async Task StoreAsync(PersistedGrant grant)
+    public virtual async Task StoreAsync(PersistedGrant grant, CancellationToken ct)
     {
       if (grant == null)
         throw new ArgumentNullException(nameof(grant));
@@ -177,7 +179,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Stores
     /// </summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    public virtual async Task<PersistedGrant> GetAsync(string key)
+    public virtual async Task<PersistedGrant> GetAsync(string key, CancellationToken ct)
     {
       try
       {
@@ -197,7 +199,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Stores
     /// </summary>
     /// <param name="filter"></param>
     /// <returns></returns>
-    public virtual async Task<IEnumerable<PersistedGrant>> GetAllAsync(PersistedGrantFilter filter)
+    public virtual async Task<IReadOnlyCollection<PersistedGrant>> GetAllAsync(PersistedGrantFilter filter, CancellationToken ct)
     {
       try
       {
@@ -214,7 +216,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Stores
           await transaction.ExecuteAsync();
         }
         logger.LogDebug("{grantsCount} persisted grants found for {subjectId}", grants.Count(), filter.SubjectId);
-        return grants.Where(_ => _.HasValue).Select(_ => ConvertFromJson(_)).Where(_ => IsMatch(_, filter));
+        return grants.Where(_ => _.HasValue).Select(_ => ConvertFromJson(_)).Where(_ => IsMatch(_, filter)).ToList();
       }
       catch (Exception ex)
       {
@@ -245,11 +247,11 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Stores
     /// </summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    public virtual async Task RemoveAsync(string key)
+    public virtual async Task RemoveAsync(string key, CancellationToken ct)
     {
       try
       {
-        var grant = await this.GetAsync(key);
+        var grant = await this.GetAsync(key, ct);
         if (grant == null)
         {
           logger.LogDebug("no {key} persisted grant found in database", key);
@@ -278,7 +280,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Stores
     /// </summary>
     /// <param name="filter"></param>
     /// <returns></returns>
-    public virtual async Task RemoveAllAsync([NotNull] PersistedGrantFilter filter)
+    public virtual async Task RemoveAllAsync([NotNull] PersistedGrantFilter filter, CancellationToken ct)
     {
       if (filter is null)
         throw new ArgumentNullException(nameof(filter));

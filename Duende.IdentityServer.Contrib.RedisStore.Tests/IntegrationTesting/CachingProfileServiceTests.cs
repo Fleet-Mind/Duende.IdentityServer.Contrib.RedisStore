@@ -1,5 +1,5 @@
 using FluentAssertions;
-using IdentityModel.Client;
+using Duende.IdentityModel.Client;
 using Duende.IdentityServer.Contrib.RedisStore.Tests.Cache;
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Services;
@@ -110,7 +110,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Tests
         });
         result.IsActive.Should().BeTrue();
       }
-      logger.AccessCount["Cache hit for 1"].Should().Subject.Value.Equals(10);
+      logger.AccessCount["Cache hit for 1"].Should().Subject.Equals(10);
     }
 
     [Fact]
