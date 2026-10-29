@@ -137,13 +137,13 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Stores
           _ = transaction.SetAddAsync(setKeyforSubject, grantKey);
           _ = transaction.SetAddAsync(setKeyforClient, grantKey);
           _ = transaction.SetAddAsync(setKeyforType, grantKey);
-          if (!grant.SessionId.IsNullOrEmpty())
+          if (!string.IsNullOrEmpty(grant.SessionId))
             _ = transaction.SetAddAsync(setKetforSession, grantKey);
           if ((ttlOfSubjectSet.Result ?? TimeSpan.Zero) <= expiresIn)
             _ = transaction.KeyExpireAsync(setKeyforSubject, expiresIn);
           if ((ttlOfClientSet.Result ?? TimeSpan.Zero) <= expiresIn)
             _ = transaction.KeyExpireAsync(setKeyforClient, expiresIn);
-          if (!grant.SessionId.IsNullOrEmpty() && (ttlofSessionSet.Result ?? TimeSpan.Zero) <= expiresIn)
+          if (!string.IsNullOrEmpty(grant.SessionId) && (ttlofSessionSet.Result ?? TimeSpan.Zero) <= expiresIn)
             _ = transaction.KeyExpireAsync(setKetforSession, expiresIn);
           _ = transaction.KeyExpireAsync(setKeyforType, expiresIn);
           await transaction.ExecuteAsync();
@@ -328,7 +328,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Stores
     protected virtual string GetSetKey([NotNull] PersistedGrantFilter filter)
     {
       if (filter is null) throw new ArgumentNullException(nameof(filter));
-      return (!filter.ClientId.IsNullOrEmpty(), !filter.SessionId.IsNullOrEmpty(), !filter.Type.IsNullOrEmpty()) switch
+      return (!string.IsNullOrEmpty(filter.ClientId), !string.IsNullOrEmpty(filter.SessionId), !string.IsNullOrEmpty(filter.Type)) switch
       {
         (true, true, false) => GetSetKeyWithSession(filter.SubjectId, filter.ClientId, filter.SessionId),
         (true, _, false) => GetSetKey(filter.SubjectId, filter.ClientId),
@@ -347,10 +347,10 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Stores
     {
       if (filter is null) throw new ArgumentNullException(nameof(filter));
       if (grant is null) throw new ArgumentNullException(nameof(grant));
-      return (filter.SubjectId.IsNullOrEmpty() || grant.SubjectId == filter.SubjectId)
-      && (filter.ClientId.IsNullOrEmpty() || grant.ClientId == filter.ClientId)
-      && (filter.SessionId.IsNullOrEmpty() || grant.SessionId == filter.SessionId)
-      && (filter.Type.IsNullOrEmpty() || grant.Type == filter.Type);
+      return (string.IsNullOrEmpty(filter.SubjectId) || grant.SubjectId == filter.SubjectId)
+      && (string.IsNullOrEmpty(filter.ClientId) || grant.ClientId == filter.ClientId)
+      && (string.IsNullOrEmpty(filter.SessionId) || grant.SessionId == filter.SessionId)
+      && (string.IsNullOrEmpty(filter.Type) || grant.Type == filter.Type);
     }
 
     #region Json

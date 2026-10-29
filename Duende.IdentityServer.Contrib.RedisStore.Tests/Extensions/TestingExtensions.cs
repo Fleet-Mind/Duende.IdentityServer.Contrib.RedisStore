@@ -2,9 +2,8 @@ namespace Microsoft.Extensions.DependencyInjection
 {
   using Duende.IdentityServer.Contrib.RedisStore.Tests;
   using Duende.IdentityServer.Contrib.RedisStore.Tests.Cache;
-  using Duende.IdentityServer.Services;
   using Microsoft.Extensions.Caching.Memory;
-  using Microsoft.Extensions.Logging;
+  using Duende.IdentityServer.Contrib.RedisStore.Cache;
 
   internal static class TestingExtensions
   {

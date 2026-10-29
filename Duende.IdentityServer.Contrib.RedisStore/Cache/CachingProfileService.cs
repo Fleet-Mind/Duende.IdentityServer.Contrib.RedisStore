@@ -1,8 +1,9 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Duende.IdentityServer.Contrib.RedisStore;
+using Duende.IdentityServer.Contrib.RedisStore.Cache;
 using Duende.IdentityServer.Models;
 using Microsoft.Extensions.Logging;
-using Duende.IdentityServer.Extensions;
 
 namespace Duende.IdentityServer.Services
 {
@@ -45,10 +46,11 @@ namespace Duende.IdentityServer.Services
     /// (e.g. during token creation or via the userinfo endpoint)
     /// </summary>
     /// <param name="context">The context.</param>
+    /// <param name="ct">The cancellation token.</param>
     /// <returns></returns>
-    public async Task GetProfileDataAsync(ProfileDataRequestContext context)
+    public async Task GetProfileDataAsync(ProfileDataRequestContext context, CancellationToken ct)
     {
-      await this.inner.GetProfileDataAsync(context);
+      await this.inner.GetProfileDataAsync(context, ct);
     }
 
     /// <summary>
@@ -57,8 +59,9 @@ namespace Duende.IdentityServer.Services
     /// (e.g. during token issuance or validation).
     /// </summary>
     /// <param name="context">The context.</param>
+    /// <param name="ct">The cancellation token.</param>
     /// <returns></returns>
-    public async Task IsActiveAsync(IsActiveContext context)
+    public async Task IsActiveAsync(IsActiveContext context, CancellationToken ct)
     {
       var key = $"{options.KeyPrefix}{options.KeySelector(context)}";
 
@@ -67,7 +70,7 @@ namespace Duende.IdentityServer.Services
         var entry = await cache.GetOrAddAsync(key, options.Expiration,
                       async () =>
                       {
-                        await inner.IsActiveAsync(context);
+                        await inner.IsActiveAsync(context, ct);
                         return new IsActiveContextCacheEntry { IsActive = context.IsActive };
                       });
 
@@ -75,7 +78,7 @@ namespace Duende.IdentityServer.Services
       }
       else
       {
-        await inner.IsActiveAsync(context);
+        await inner.IsActiveAsync(context, ct);
       }
     }
   }

@@ -1,4 +1,4 @@
-﻿using Duende.IdentityServer.Models;
+using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Services;
 using System;
 using System.Collections.Generic;
@@ -6,6 +6,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Threading;
 
 namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Cache
 {
@@ -13,7 +14,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Cache
     {
         public IEnumerable<Claim> Claims = new List<Claim>();
 
-        public Task GetProfileDataAsync(ProfileDataRequestContext context)
+        public Task GetProfileDataAsync(ProfileDataRequestContext context, CancellationToken ct)
         {
             context.IssuedClaims = Claims.ToList();
             return Task.CompletedTask;
@@ -21,7 +22,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Cache
 
         public Action<IsActiveContext> IsActive;
 
-        public Task IsActiveAsync(IsActiveContext context)
+        public Task IsActiveAsync(IsActiveContext context, CancellationToken ct)
         {
             IsActive?.Invoke(context);
             return Task.CompletedTask;

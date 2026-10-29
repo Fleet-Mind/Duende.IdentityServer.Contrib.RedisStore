@@ -1,9 +1,8 @@
-using Duende.IdentityServer.Services;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using Duende.IdentityServer.Contrib.RedisStore.Cache;
 
 namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Cache
 {

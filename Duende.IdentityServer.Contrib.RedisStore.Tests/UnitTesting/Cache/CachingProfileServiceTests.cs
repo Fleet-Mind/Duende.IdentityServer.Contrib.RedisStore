@@ -3,7 +3,6 @@ using Duende.IdentityServer.Services;
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using FluentAssertions;
@@ -40,9 +39,9 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Cache
     {
       var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim> { new Claim("sub", "1") }));
       var context = new IsActiveContext(principal, new Client(), "test");
-      await profileServiceCache.IsActiveAsync(context);
-      await profileServiceCache.IsActiveAsync(context);
-      await profileServiceCache.IsActiveAsync(context);
+      await profileServiceCache.IsActiveAsync(context, CancellationToken.None);
+      await profileServiceCache.IsActiveAsync(context, CancellationToken.None);
+      await profileServiceCache.IsActiveAsync(context, CancellationToken.None);
       context.IsActive.Should().BeTrue();
       logger.AccessCount["Cache hit for 1"].Should().Subject.Equals(2);
     }
@@ -53,7 +52,7 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Cache
       inner.IsActive = cxt => cxt.IsActive = false;
       var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim> { new Claim("sub", "1") }));
       var context = new IsActiveContext(principal, new Client(), "test");
-      await profileServiceCache.IsActiveAsync(context);
+      await profileServiceCache.IsActiveAsync(context, CancellationToken.None);
       context.IsActive.Should().BeFalse();
     }
 
@@ -67,11 +66,11 @@ namespace Duende.IdentityServer.Contrib.RedisStore.Tests.Cache
         Mock.Of<ILogger<CachingProfileService<FakeProfileService>>>());
       var principal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim> { new Claim("sub", "1") }));
       var context = new IsActiveContext(principal, new Client(), "test");
-      await profileServiceCache.IsActiveAsync(context);
-      await profileServiceCache.IsActiveAsync(context);
+      await profileServiceCache.IsActiveAsync(context, CancellationToken.None);
+      await profileServiceCache.IsActiveAsync(context, CancellationToken.None);
       Thread.Sleep(1000);
-      await profileServiceCache.IsActiveAsync(context);
-      await profileServiceCache.IsActiveAsync(context);
+      await profileServiceCache.IsActiveAsync(context, CancellationToken.None);
+      await profileServiceCache.IsActiveAsync(context, CancellationToken.None);
       context.IsActive.Should().BeTrue();
       logger.AccessCount["Cache hit for 1"].Should().Subject.Equals(2);
     }
